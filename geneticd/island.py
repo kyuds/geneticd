@@ -3,10 +3,13 @@ import ray
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from geneticd.ga import GAEngine
+
 @ray.remote
 class Island:
-    def __init__(self, name: str):
+    def __init__(self, name: str, ga: GAEngine):
         self.name = name
+        self.ga = ga
 
 class Topology:
     """
@@ -20,6 +23,7 @@ class Topology:
 
     GA populations will only move between Islands that are "connected" to each
     other defined by the Topology.
+    
     """
     def __init__(self):
         self.topology = defaultdict(set)
