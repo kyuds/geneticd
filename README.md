@@ -1,16 +1,4 @@
 # geneticd
-Distributed Genetic Algorithms
+Distributed Island GA
 
-### TODO
-Selectors:
-- Roulette Wheel
-- Tournament
-- Rank Selection
-- Stochastic Universal Sampling
-
-Deduplication
-
-- Select Parents (percentage?) --> definitive crossover
-- Based on crossover
-- Merge
-
+As shown [here](https://www.metahack.org/gong-fukunaga-island-model-cec2011.pdf), implemented in Ray.

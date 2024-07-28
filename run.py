@@ -1,6 +1,7 @@
-# if not called directly, do nothing
+from equations import Griewank
+
+DIMENSIONS = 10
 
 if __name__ == "__main__":
-    from examples.string import runStringGuesserExample
-
-    runStringGuesserExample()
+    g = Griewank()
+    print(g([10, 1]))

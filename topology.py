@@ -1,15 +1,6 @@
 from collections import defaultdict
-import ray
 import networkx as nx
 import matplotlib.pyplot as plt
-
-from geneticd.ga import GAEngine
-
-@ray.remote
-class Island:
-    def __init__(self, name: str, ga: GAEngine):
-        self.name = name
-        self.ga = ga
 
 class Topology:
     """
