@@ -1,4 +1,4 @@
 # geneticd
 Distributed Island GA
 
-As shown [here](https://www.metahack.org/gong-fukunaga-island-model-cec2011.pdf), implemented in Ray.
+As shown [here](https://ieeexplore.ieee.org/document/5949703), implemented in Ray.

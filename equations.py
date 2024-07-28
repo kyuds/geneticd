@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 import math
+import random
+from chromosome import Chromosome
 
 class Equation(ABC):
     """
@@ -13,34 +15,62 @@ class Equation(ABC):
     results in the smallest value.
 
     """
+    minimum = None
+    maximum = None
+
     @abstractmethod
-    def __call__(self, vec):
+    def __call__(self, vec: list[float]) -> float:
         pass
 
+    def generate(self, dim: int, pop: int) -> list[Chromosome]:
+        """
+        Generate a list of chromosomes (with precomputed fitness values and 
+        epoch) to initialize a population list. This depends on the minimum
+        and maximum values of the given function. 
+        """
+        population = []
+        for _ in range(pop):
+            vec = [
+                random.uniform(self.minimum, self.maximum)
+                for _ in range(dim)
+            ]
+            fitness = self.__call__(vec)
+            population.append(Chromosome(vec, 0, fitness))
+        return population
+
 class Griewank(Equation):
-    def __call__(self, vec):
+    minimum = -512
+    maximum = 512
+
+    def __call__(self, vec: list[float]) -> float:
         summation = 0
         product = 1
         # because summation for the equation starts at 1.
         for i, n in enumerate(vec, start=1):
-            assert -512 <= n and n < 512
+            assert self.minimum <= n and n <= self.maximum
             summation += n ** 2
             product *= math.cos(n / math.sqrt(i))
         return 1 + summation / 4000 + product
     
 class Rastrigin(Equation):
-    def __call__(self, vec):
+    minimum = -5.12
+    maximum = 5.12
+
+    def __call__(self, vec: list[float]) -> float:
         result = len(vec) * 10
         for n in vec:
-            assert -5.12 <= n and n < 5.12
+            assert self.minimum <= n and n <= self.maximum
             result += n ** 2
             result -= 10 * math.cos(2 * math.pi * n)
         return result
 
 class Schwefel(Equation):
-    def __call__(self, vec):
+    minimum = -512
+    maximum = 512
+
+    def __call__(self, vec: list[float]) -> float:
         result = 0
         for n in vec:
-            assert -512 <= n and n < 512
-            result -= n * math.sin(math.sqrt(n))
+            assert self.minimum <= n and n <= self.maximum
+            result -= n * math.sin(math.sqrt(abs(n)))
         return result
