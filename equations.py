@@ -18,11 +18,14 @@ class Equation(ABC):
     minimum = None
     maximum = None
 
+    def __init__(self, dim: int):
+        self.dim = dim
+
     @abstractmethod
-    def __call__(self, vec: list[float]) -> float:
+    def calc(self, vec: list[float]) -> float:
         pass
 
-    def generate(self, dim: int, pop: int) -> list[Chromosome]:
+    def generate(self, pop: int) -> list[Chromosome]:
         """
         Generate a list of chromosomes (with precomputed fitness values and 
         epoch) to initialize a population list. This depends on the minimum
@@ -32,9 +35,9 @@ class Equation(ABC):
         for _ in range(pop):
             vec = [
                 random.uniform(self.minimum, self.maximum)
-                for _ in range(dim)
+                for _ in range(self.dim)
             ]
-            fitness = self.__call__(vec)
+            fitness = self.calc(vec)
             population.append(Chromosome(vec, 0, fitness))
         return population
 
@@ -42,7 +45,10 @@ class Griewank(Equation):
     minimum = -512
     maximum = 512
 
-    def __call__(self, vec: list[float]) -> float:
+    def __init__(self, dim):
+        super().__init__(dim)
+
+    def calc(self, vec: list[float]) -> float:
         summation = 0
         product = 1
         # because summation for the equation starts at 1.
@@ -56,7 +62,10 @@ class Rastrigin(Equation):
     minimum = -5.12
     maximum = 5.12
 
-    def __call__(self, vec: list[float]) -> float:
+    def __init__(self, dim):
+        super().__init__(dim)
+
+    def calc(self, vec: list[float]) -> float:
         result = len(vec) * 10
         for n in vec:
             assert self.minimum <= n and n <= self.maximum
@@ -68,7 +77,10 @@ class Schwefel(Equation):
     minimum = -512
     maximum = 512
 
-    def __call__(self, vec: list[float]) -> float:
+    def __init__(self, dim):
+        super().__init__(dim)
+
+    def calc(self, vec: list[float]) -> float:
         result = 0
         for n in vec:
             assert self.minimum <= n and n <= self.maximum

@@ -19,10 +19,9 @@ class GAEngine:
     dim     : dimension of the equation.
     
     """
-    def __init__(self, p: 'GAParameter', eq: Equation, dim: int):
+    def __init__(self, p: 'GAParameter', eq: Equation):
         self.p = p
         self.equation = eq
-        self.dim = dim
 
         self.population = None
         self.best = None
@@ -33,7 +32,7 @@ class GAEngine:
         """
         assert self.population is None
         assert self.best is None
-        self.population = self.equation.generate(self.dim, self.p.population)
+        self.population = self.equation.generate(self.p.population)
         self.proceed(epoch)
     
     def proceed(self, epoch: int = 20):
@@ -66,35 +65,53 @@ class GAEngine:
                 generation.extend([c1, c2])
             
             for c in generation:
-                mutated = random.random() < self.p.mutationRate
-                if mutated:
+                if random.random() < self.p.mutation_rate:
                     self.__mutate(c)
-                if c.epoch == ep or mutated:
-                    f = self.equation(c.value)
-                    if f < self.best.fitness:
+                if c.fitness is None:
+                    c.fitness = self.equation.calc(c.value)
+                    if c.fitness < self.best.fitness:
                         # we use deep copy to prevent object from being 
                         # modified in subsequent generations.
-                        self.bestChromosome = copy.deepcopy(c)
-                    c.fitness = f
+                        self.best = copy.deepcopy(c)
             
             self.population = generation
+            print(self.best.fitness)
+    
+    def __select(self, num: int) -> list[Chromosome]:
+        # Roulette Wheel Selection
+        assert num < self.p.population
+        weights = [c.fitness for c in self.population]
+        return random.choices(self.population, weights=weights, k=num)
+
+    def __retain(self, num: int) -> list[Chromosome]:
+        assert num < self.p.population
+        return self.population[:num]
+
+    def __crossover(self, c1: Chromosome, c2: Chromosome) -> tuple[Chromosome]:
+        # no in-place modification (will conflict with retained Chromosomes
+        # and other crossover operations)
+        # one-point crossover
+        point = random.randint(0, self.equation.dim - 1)
+        g1 = c1.value[:point] + c2.value[point:]
+        g2 = c2.value[:point] + c1.value[point:]
+        return (Chromosome(g1, None, None), Chromosome(g2, None, None))
+
+    def __mutate(self, c: Chromosome, intensity: int = 0.05):
+        # in-place modification
+        assert intensity < 1 and intensity > 0
+        for i in range(len(c.value)):
+            factor = random.uniform(1 - intensity, 1 + intensity)
+            m = c.value[i] * factor
+            if m < self.equation.minimum or m > self.equation.maximum:
+                # reverse to prevent values from clustering to maximum or
+                # minimum values.
+                m = (2 - factor) * c.value[i]
+            c.value[i] = m
+        # clear fitness for recalculation
+        c.fitness = None
 
     def result(self):
         return self.best
-    
-    def __select(self, num: int) -> list[Chromosome]:
-        pass
-
-    def __retain(self, num: int) -> list[Chromosome]:
-        pass
-
-    def __crossover(self, c1: Chromosome, c2: Chromosome) -> tuple[Chromosome]:
-        # no in-place modification
-        pass
-
-    def __mutate(self, c: Chromosome):
-        # in-place modification
-        pass
 
 class GAParameter:
     """
