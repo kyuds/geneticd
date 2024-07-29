@@ -25,6 +25,8 @@ class GAEngine:
 
         self.population = None
         self.best = None
+        self.updated = False
+        self.epoch = 0
     
     def start(self, epoch: int = 20):
         """
@@ -42,8 +44,10 @@ class GAEngine:
         called.
         """
         assert self.population is not None
+        self.updated = False
 
-        for ep in range(1, epoch + 1):
+        for _ in range(1, epoch + 1):
+            self.epoch += 1
             assert len(self.population) == self.p.population, \
                    "population needs to be stable."
             
@@ -51,6 +55,7 @@ class GAEngine:
             self.population.sort(key=lambda c: c.fitness)
             if self.best is None:
                 self.best = copy.deepcopy(self.population[0])
+                self.updated = True
             
             num_select = (math.floor(
                 self.p.population * self.p.crossover_rate) + 1) // 2 * 2
@@ -61,7 +66,7 @@ class GAEngine:
 
             for i in range(0, num_select, 2):
                 c1, c2 = self.__crossover(parents[i], parents[i + 1])
-                c1.epoch, c2.epoch = ep, ep
+                c1.epoch, c2.epoch = self.epoch, self.epoch
                 generation.extend([c1, c2])
             
             for c in generation:
@@ -73,15 +78,20 @@ class GAEngine:
                         # we use deep copy to prevent object from being 
                         # modified in subsequent generations.
                         self.best = copy.deepcopy(c)
+                        # indicate to island that we have a newly found
+                        # local minimum
+                        self.updated = True
             
             self.population = generation
-            print(self.best.fitness)
     
     def __select(self, num: int) -> list[Chromosome]:
         # Roulette Wheel Selection
         assert num < self.p.population
-        weights = [c.fitness for c in self.population]
-        return random.choices(self.population, weights=weights, k=num)
+        # because smaller fitness values = higher weights
+        return random.choices(
+            self.population, 
+            weights=[1 / c.fitness for c in self.population], 
+            k=num)
 
     def __retain(self, num: int) -> list[Chromosome]:
         assert num < self.p.population
@@ -110,8 +120,18 @@ class GAEngine:
         # clear fitness for recalculation
         c.fitness = None
 
+    def add_population(self, chromosomes: list[Chromosome]):
+        self.population.extend(chromosomes)
+        self.population.sort(key=lambda c: c.fitness)
+        self.population = self.population[:self.p.population]
+
     def result(self):
         return self.best
+
+    def updated_result(self):
+        if self.updated:
+            return self.best
+        return None
 
 class GAParameter:
     """

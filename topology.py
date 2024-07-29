@@ -36,6 +36,9 @@ class Topology:
         assert n1 != n2, "island cannot connect to itself"
         self.topology[n1].add(n2)
     
+    def get_connections(self, n: str) -> list[str]:
+        return self.topology[n]
+    
     def visualize(self):
         g = nx.DiGraph()
         for node, neighbors in self.topology.items():
